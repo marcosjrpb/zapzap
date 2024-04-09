@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "498501884458",
+    "project_id": "zapzap-710df",
+    "storage_bucket": "zapzap-710df.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:498501884458:android:586b3f6f2c4acdde8c8153",
+        "android_client_info": {
+          "package_name": "com.example.zapzap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAvw21UBKxCJ4PE_WGT1gZiy6Cb2dBCP4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
