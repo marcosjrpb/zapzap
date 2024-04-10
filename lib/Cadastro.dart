@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:zapzap/Cadastro.dart';
 
-class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
+class Cadastro extends StatefulWidget {
+  const Cadastro({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  State<Cadastro> createState() => _CadastroState();
 }
 
-class _LoginState extends State<Login> {
+class _CadastroState extends State<Cadastro> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Cadastro"),
+      ),
       body: Container(
         decoration: BoxDecoration(color: Color(0xff075e54)),
         padding: EdgeInsets.all(16),
@@ -22,7 +24,7 @@ class _LoginState extends State<Login> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 32),
                   child: Image.asset(
-                    "imagens/logo.png",
+                    "imagens/usuario.png",
                     width: 200,
                     height: 150,
                   ),
@@ -31,6 +33,22 @@ class _LoginState extends State<Login> {
                   padding: EdgeInsets.only(bottom: 8),
                   child: TextField(
                     autofocus: true,
+                    keyboardType: TextInputType.text,
+                    style: TextStyle(fontSize: 20),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.fromLTRB(32, 16, 32, 16),
+                      hintText: "Nome: ",
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: TextField(
                     keyboardType: TextInputType.emailAddress,
                     style: TextStyle(fontSize: 20),
                     decoration: InputDecoration(
@@ -66,7 +84,7 @@ class _LoginState extends State<Login> {
                   child: ElevatedButton(
                     onPressed: () {},
                     child: Text(
-                      "Entrar",
+                      "Cadastrar",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -81,26 +99,7 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-                Center(
 
-                  child: GestureDetector(
-                    
-                    child: 
-                    Padding( padding: EdgeInsets.all(8.0),
-                        child:
-                    Text(
-                      "Não tem conta? Cadastra-se!",
-                      style: TextStyle(
-                          color: Colors.white,
-                      fontSize: 20),
-                    ),
-                    ),
-                    onTap: (){
-                      Navigator.push(context,
-                         MaterialPageRoute(builder: (context)=>Cadastro()));
-                    },
-                  ),
-                ),
               ],
             ),
           ),
