@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:zapzap/model/Usuario.dart';
 
 class Cadastro extends StatefulWidget {
   const Cadastro({Key? key}) : super(key: key);
@@ -8,27 +11,102 @@ class Cadastro extends StatefulWidget {
 }
 
 class _CadastroState extends State<Cadastro> {
-  // Controllers
-  TextEditingController _controllerNome = TextEditingController();
-  TextEditingController _controllerEmail = TextEditingController();
-  TextEditingController _controllerSenha = TextEditingController();
+  final TextEditingController _controllerNome = TextEditingController();
+  final TextEditingController _controllerEmail = TextEditingController();
+  final TextEditingController _controllerSenha = TextEditingController();
+  String? _mensagem;
 
-  // Função para validar campos
-  bool _validarCampos() {
-    String nome = _controllerNome.text;
-    String email = _controllerEmail.text;
-    String senha = _controllerSenha.text;
+  Future<bool> _validarCampos() async {
+    String nome = _controllerNome.text.trim();
+    String email = _controllerEmail.text.trim();
+    String senha = _controllerSenha.text.trim();
 
-    // Expressão regular para validar o e-mail
     RegExp regexEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     RegExp regexSenha = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$');
-    return nome.isNotEmpty &&
+
+    if (nome.isNotEmpty &&
         nome.length > 4 &&
         email.isNotEmpty &&
         senha.isNotEmpty &&
-        senha.length > 6 &&
+        senha.length > 7 && // Ajuste para senha de 8 caracteres ou mais
         regexEmail.hasMatch(email) &&
-        regexSenha.hasMatch(senha);
+        regexSenha.hasMatch(senha)) {
+      Usuario user = Usuario(email: email, senha: senha);
+      return await _cadastrarUsuario(user);
+    } else {
+      _mensagemErro("Por favor, preencha todos os campos corretamente.");
+      return false;
+    }
+  }
+
+  Future<bool> _cadastrarUsuario(Usuario user) async {
+    try {
+      FirebaseAuth auth = FirebaseAuth.instance;
+      await auth.createUserWithEmailAndPassword(
+        email: user.email,
+        password: user.senha,
+      );
+      _mensagemSucesso("Cadastro realizado com sucesso!");
+      await _retornoBdFirebase(
+          user); // Chamada para a função de retorno do banco de dados
+      return true;
+    } on FirebaseAuthException catch (error) {
+      String errorMessage = "Erro no cadastro: ${error.message}";
+      _mensagemErro(errorMessage);
+      print(errorMessage);
+      return false;
+    }
+  }
+
+  Future<bool> _retornoBdFirebase(Usuario user) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    await firestore.collection('usuarios').add({
+      'nome': user.nome,
+      'email': user.email,
+    });
+    // Após inserir os dados no banco, você pode exibir uma mensagem abaixo do botão de cadastro.
+    _mensagemSucessoBd("Dados cadastrados, "
+        "\n E-mail:  ${user.email}"
+        "\n Senha: ${user.senha} ");
+    return true;
+  }
+
+  void _mensagemErro(String errorMessage) {
+    _mostrarDialogo("Erro", errorMessage);
+  }
+
+  void _mensagemSucesso(String successMessage) {
+    _mostrarDialogo("Sucesso", successMessage);
+  }
+
+  void _mensagemSucessoBd(String successMessage) {
+    setState(() {
+      _mensagem = successMessage;
+    });
+  }
+
+  void _mostrarDialogo(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text(title),
+          content: Text(
+            content,
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -48,7 +126,7 @@ class _CadastroState extends State<Cadastro> {
         child: SizedBox(
           height: MediaQuery.of(context).size.height -
               AppBar().preferredSize.height -
-              50, // Exemplo de margem inferior extra
+              50,
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -105,69 +183,11 @@ class _CadastroState extends State<Cadastro> {
                 ),
                 SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: () {
-                    if (_validarCampos()) {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            backgroundColor: Colors.white,
-                            title: Text("Sucesso"),
-                            content: const Text(
-                              "Cadastro realizado com sucesso!",
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text("OK"),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            backgroundColor: Colors.white,
-                            title: Text("Erro"),
-                            content: const Row(
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  color: Colors.red,
-                                ),
-                                SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    "Por favor, preencha todos os campos corretamente.\n"
-                                        "Nome: mais de 4 caracteres. \n"
-                                        "Email: completo. \n"
-                                        "Senha mais de 6 caracteres.",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text("OK"),
-                              ),
-                            ],
-                          );
-                        },
-                      );
+                  onPressed: () async {
+                    if (await _validarCampos()) {
+                      // Se a validação dos campos for bem-sucedida,
+                      // não é necessário mostrar outro diálogo de sucesso aqui,
+                      // pois o método _validarCampos() já cuida disso.
                     }
                   },
                   child: Text(
@@ -178,14 +198,21 @@ class _CadastroState extends State<Cadastro> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    padding:
-                    EdgeInsets.symmetric(vertical: 16), // Define o preenchimento vertical do botão
+                    padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32), // Define a borda do botão
+                      borderRadius: BorderRadius.circular(32),
                     ),
-                    backgroundColor: Colors.green, // Cor de fundo do botão
+                    backgroundColor: Colors.green,
                   ),
                 ),
+                if (_mensagem != null)
+                  Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: Text(
+                      _mensagem!,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -194,4 +221,3 @@ class _CadastroState extends State<Cadastro> {
     );
   }
 }
-
