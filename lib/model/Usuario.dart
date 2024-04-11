@@ -3,6 +3,8 @@ class Usuario {
   String _email = "";
   String _senha = "";
 
+
+
   Usuario({required String email, required String senha}) {
     _email = email;
     _senha = senha;

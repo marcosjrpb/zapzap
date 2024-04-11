@@ -1,5 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:zapzap/Cadastro.dart';
+import 'package:zapzap/MyApp.dart';
+
+import 'model/Usuario.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -9,6 +13,50 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  TextEditingController _controllerEmail = TextEditingController();
+  TextEditingController _controllerSenha = TextEditingController();
+  String _mensagemErro = "";
+
+  Future<void> _validarCampos() async {
+    String email = _controllerEmail.text.trim();
+    String senha = _controllerSenha.text.trim();
+
+    RegExp regexEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    RegExp regexSenha = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$');
+
+    if (email.isEmpty || !regexEmail.hasMatch(email)) {
+      setState(() {
+        _mensagemErro = "E-mail inválido.";
+      });
+      return;
+    } else if (senha.isEmpty || senha.length <= 7 || !regexSenha.hasMatch(senha)) {
+      setState(() {
+        _mensagemErro = "Senha deve conter pelo menos 8 caracteres, incluindo letras e números.";
+      });
+      return;
+    }
+
+    Usuario user = Usuario(email: email, senha: senha);
+    _logarUsuario(user);
+  }
+
+  void _logarUsuario(Usuario user) {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    auth.signInWithEmailAndPassword(
+      email: user.email!,
+      password: user.senha!,
+    ).then((firebaseUser) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MyApp()),
+      );
+    }).catchError((error) {
+      setState(() {
+        _mensagemErro = "Erro de autenticação!";
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,6 +78,7 @@ class _LoginState extends State<Login> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 8),
                   child: TextField(
+                    controller: _controllerEmail,
                     autofocus: true,
                     keyboardType: TextInputType.emailAddress,
                     style: TextStyle(fontSize: 20),
@@ -47,6 +96,7 @@ class _LoginState extends State<Login> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 8),
                   child: TextField(
+                    controller: _controllerSenha,
                     obscureText: true,
                     keyboardType: TextInputType.text,
                     style: TextStyle(fontSize: 20),
@@ -62,9 +112,11 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 SizedBox(
-                  width: double.infinity, // Define a largura igual à largura total da tela
+                  width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _validarCampos();
+                    },
                     child: Text(
                       "Entrar",
                       style: TextStyle(
@@ -73,32 +125,38 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 16), // Define o preenchimento vertical do botão
+                      padding: EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32), // Define a borda do botão
+                        borderRadius: BorderRadius.circular(32),
                       ),
-                      backgroundColor: Colors.green, // Cor de fundo do botão
+                      backgroundColor: Colors.green,
                     ),
                   ),
                 ),
-                Center(
-
-                  child: GestureDetector(
-                    
-                    child: 
-                    Padding( padding: EdgeInsets.all(8.0),
-                        child:
-                    Text(
-                      "Não tem conta? Cadastra-se!",
+                GestureDetector(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      "Não tem conta? Cadastre-se!",
                       style: TextStyle(
-                          color: Colors.white,
-                      fontSize: 20),
+                        color: Colors.white,
+                        fontSize: 20,
+                      ),
                     ),
-                    ),
-                    onTap: (){
-                      Navigator.push(context,
-                         MaterialPageRoute(builder: (context)=>Cadastro()));
-                    },
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Cadastro()),
+                    );
+                  },
+                ),
+                Padding(padding: EdgeInsets.only(top: 16)),
+                Text(
+                  _mensagemErro,
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 20,
                   ),
                 ),
               ],

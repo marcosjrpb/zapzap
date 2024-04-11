@@ -16,7 +16,11 @@ class _CadastroState extends State<Cadastro> {
   final TextEditingController _controllerSenha = TextEditingController();
   String? _mensagem;
 
-  Future<bool> _validarCampos() async {
+  // Adicionando variáveis para controle de edição
+  bool _visualizouRetorno = false;
+
+
+  Future<String?> _validarCampos() async {
     String nome = _controllerNome.text.trim();
     String email = _controllerEmail.text.trim();
     String senha = _controllerSenha.text.trim();
@@ -24,18 +28,20 @@ class _CadastroState extends State<Cadastro> {
     RegExp regexEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     RegExp regexSenha = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$');
 
-    if (nome.isNotEmpty &&
-        nome.length > 4 &&
-        email.isNotEmpty &&
-        senha.isNotEmpty &&
-        senha.length > 7 && // Ajuste para senha de 8 caracteres ou mais
-        regexEmail.hasMatch(email) &&
-        regexSenha.hasMatch(senha)) {
-      Usuario user = Usuario(email: email, senha: senha);
-      return await _cadastrarUsuario(user);
+    if (nome.isEmpty || nome.length <= 4) {
+      return "Nome deve conter mais de 4 caracteres.";
+    } else if (email.isEmpty || !regexEmail.hasMatch(email)) {
+      return "E-mail inválido.";
+    } else if (senha.isEmpty || senha.length <= 7 || !regexSenha.hasMatch(senha)) {
+      return "Senha deve conter pelo menos 8 caracteres, incluindo letras e números.";
+    }
+
+    Usuario user = Usuario.comNome(nome: nome,  email: email, senha: senha);
+    bool cadastrado = await _cadastrarUsuario(user);
+    if (cadastrado) {
+      return "Sucesso";
     } else {
-      _mensagemErro("Por favor, preencha todos os campos corretamente.");
-      return false;
+      return "Erro ao cadastrar usuário.";
     }
   }
 
@@ -63,13 +69,29 @@ class _CadastroState extends State<Cadastro> {
     await firestore.collection('usuarios').add({
       'nome': user.nome,
       'email': user.email,
+      'senha': user.senha,
+
     });
-    // Após inserir os dados no banco, você pode exibir uma mensagem abaixo do botão de cadastro.
+
     _mensagemSucessoBd("Dados cadastrados, "
+        "\n Nome:  ${user.nome}"
         "\n E-mail:  ${user.email}"
-        "\n Senha: ${user.senha} ");
+        "\n Senha: ${user.senha} ", );
+
+
+    _controllerNome.clear();
+    _controllerSenha.clear();
+    _controllerEmail.clear();
+
+    // Atualizar o estado para indicar que o retorno foi visto
+    setState(() {
+      _visualizouRetorno = true;
+
+    });
+
     return true;
   }
+
 
   void _mensagemErro(String errorMessage) {
     _mostrarDialogo("Erro", errorMessage);
@@ -184,10 +206,10 @@ class _CadastroState extends State<Cadastro> {
                 SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: () async {
-                    if (await _validarCampos()) {
-                      // Se a validação dos campos for bem-sucedida,
-                      // não é necessário mostrar outro diálogo de sucesso aqui,
-                      // pois o método _validarCampos() já cuida disso.
+                    String? mensagem = await _validarCampos();
+                    if (mensagem == "Sucesso") {
+                    } else {
+                      _mostrarDialogo("Erro", mensagem ?? "Erro desconhecido.");
                     }
                   },
                   child: Text(
@@ -208,9 +230,16 @@ class _CadastroState extends State<Cadastro> {
                 if (_mensagem != null)
                   Padding(
                     padding: EdgeInsets.only(top: 16),
-                    child: Text(
-                      _mensagem!,
-                      style: TextStyle(color: Colors.white),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _mensagem!,
+                            style: TextStyle(color: Colors.white,fontSize: 20),
+                          ),
+                        ),
+
+                      ],
                     ),
                   ),
               ],
