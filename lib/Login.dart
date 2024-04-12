@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zapzap/Cadastro.dart';
 import 'package:zapzap/MyApp.dart';
 
@@ -29,7 +29,7 @@ class _LoginState extends State<Login> {
         _mensagemErro = "E-mail inválido.";
       });
       return;
-    } else if (senha.isEmpty || senha.length <= 7 || !regexSenha.hasMatch(senha)) {
+    } else if (senha.isEmpty || senha.length < 8 || !regexSenha.hasMatch(senha)) {
       setState(() {
         _mensagemErro = "Senha deve conter pelo menos 8 caracteres, incluindo letras e números.";
       });
@@ -37,15 +37,15 @@ class _LoginState extends State<Login> {
     }
 
     Usuario user = Usuario(email: email, senha: senha);
-    _logarUsuario(user);
+    logarUsuario(user);
   }
 
-  void _logarUsuario(Usuario user) {
+  void logarUsuario(Usuario user) {
     FirebaseAuth auth = FirebaseAuth.instance;
     auth.signInWithEmailAndPassword(
-      email: user.email!,
-      password: user.senha!,
-    ).then((firebaseUser) {
+      email: user.email,
+      password: user.senha,
+    ).then((userCredential) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MyApp()),

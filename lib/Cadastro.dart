@@ -64,6 +64,7 @@ class _CadastroState extends State<Cadastro> {
     }
   }
 
+
   Future<bool> _retornoBdFirebase(Usuario user) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     await firestore.collection('usuarios').add({

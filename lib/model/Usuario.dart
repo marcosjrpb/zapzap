@@ -3,14 +3,22 @@ class Usuario {
   String _email = "";
   String _senha = "";
 
-
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {
+      "nome": this.nome,
+      "email": this.email,
+      "senha": this.senha
+    };
+    return map;
+  }
 
   Usuario({required String email, required String senha}) {
     _email = email;
     _senha = senha;
   }
 
-  Usuario.comNome({required String nome, required String email, required String senha}) {
+  Usuario.comNome(
+      {required String nome, required String email, required String senha}) {
     _nome = nome;
     _email = email;
     _senha = senha;
