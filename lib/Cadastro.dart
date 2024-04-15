@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:zapzap/model/Usuario.dart';
 
 class Cadastro extends StatefulWidget {
-  const Cadastro({super.key});
+  const Cadastro({Key? key}) : super(key: key);
 
   @override
   State<Cadastro> createState() => _CadastroState();

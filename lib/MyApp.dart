@@ -1,7 +1,9 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:zapzap/tabs/TabsContato.dart';
+import 'package:zapzap/tabs/TabsConversas.dart';
+
 
 import 'model/Usuario.dart';
 
@@ -12,7 +14,8 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
+    late TabController _tabController ;
   String _emailUsuario = "";
 
   Future<void> _recuperarDadosUsuario() async {
@@ -31,8 +34,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    _recuperarDadosUsuario();
+
     super.initState();
+    _recuperarDadosUsuario();
+    _tabController =TabController(length: 2, vsync: this);
   }
 
   @override
@@ -40,12 +45,37 @@ class _MyAppState extends State<MyApp> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor:  Color(0xff075e54),
+        backgroundColor:  const Color(0xff075e54),
         title: const Text("WhatsApp", style: TextStyle(color: Colors.white,fontSize: 25)),
-      ),
-      body: Container(
+        bottom:   TabBar(
+          indicatorWeight: 4,
+          labelStyle: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold
+          ),
 
-        child: Text(_emailUsuario,style: const TextStyle(color: Color(0xff075e54), fontSize: 20),),
+            tabs: const [
+              Tab(
+                child: Text("Conversas",
+                  style: TextStyle(color: Colors.white,),
+                ),
+              ),
+              Tab(
+                child: Text("Contato",
+                  style: TextStyle(color: Colors.white,),
+                ),
+              ),
+          ],
+          controller: _tabController,
+          indicatorColor: Colors.white ,
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+          children: [
+            TabsConversas(),
+            TabsContato(),
+          ]
       ),
     );
   }
