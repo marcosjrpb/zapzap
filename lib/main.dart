@@ -38,9 +38,9 @@ Future<void> main() async {
 
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: Login(),
+    home: const Login(),
     theme: ThemeData(
-      hintColor: const Color(0xFF6666666),
+      hintColor: const Color(0xff6666666),
       colorScheme: colorScheme, // Aplica o esquema de cores personalizado
     ),
   ));

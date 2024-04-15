@@ -6,15 +6,15 @@ import 'package:zapzap/MyApp.dart';
 import 'model/Usuario.dart';
 
 class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
+  const Login({super.key});
 
   @override
   State<Login> createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
-  TextEditingController _controllerEmail = TextEditingController();
-  TextEditingController _controllerSenha = TextEditingController();
+  final TextEditingController _controllerEmail = TextEditingController();
+  final TextEditingController _controllerSenha = TextEditingController();
   String _mensagemErro = "";
 
   Future<void> _validarCampos() async {
@@ -48,7 +48,7 @@ class _LoginState extends State<Login> {
     ).then((userCredential) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MyApp()),
+        MaterialPageRoute(builder: (context) => const MyApp()),
       );
     }).catchError((error) {
       setState(() {
@@ -61,14 +61,14 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(color: Color(0xff075e54)),
-        padding: EdgeInsets.all(16),
+        decoration: const BoxDecoration(color: Color(0xff075e54)),
+        padding: const EdgeInsets.all(16),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(bottom: 32),
+                  padding: const EdgeInsets.only(bottom: 32),
                   child: Image.asset(
                     "imagens/logo.png",
                     width: 200,
@@ -76,14 +76,14 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: TextField(
                     controller: _controllerEmail,
                     autofocus: true,
                     keyboardType: TextInputType.emailAddress,
-                    style: TextStyle(fontSize: 20),
+                    style: const TextStyle(fontSize: 20),
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.fromLTRB(32, 16, 32, 16),
+                      contentPadding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
                       hintText: "E-mail: ",
                       filled: true,
                       fillColor: Colors.white,
@@ -94,14 +94,14 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: TextField(
                     controller: _controllerSenha,
                     obscureText: true,
                     keyboardType: TextInputType.text,
-                    style: TextStyle(fontSize: 20),
+                    style: const TextStyle(fontSize: 20),
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.fromLTRB(32, 16, 32, 16),
+                      contentPadding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
                       hintText: "Senha: ",
                       filled: true,
                       fillColor: Colors.white,
@@ -117,24 +117,24 @@ class _LoginState extends State<Login> {
                     onPressed: () {
                       _validarCampos();
                     },
-                    child: Text(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                    child: const Text(
                       "Entrar",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 22,
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
-                      ),
-                      backgroundColor: Colors.green,
-                    ),
                   ),
                 ),
                 GestureDetector(
-                  child: Padding(
+                  child: const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text(
                       "Não tem conta? Cadastre-se!",
@@ -147,14 +147,14 @@ class _LoginState extends State<Login> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Cadastro()),
+                      MaterialPageRoute(builder: (context) => const Cadastro()),
                     );
                   },
                 ),
-                Padding(padding: EdgeInsets.only(top: 16)),
+                const Padding(padding: EdgeInsets.only(top: 16)),
                 Text(
                   _mensagemErro,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.red,
                     fontSize: 20,
                   ),

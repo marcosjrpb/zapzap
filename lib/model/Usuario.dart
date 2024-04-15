@@ -3,11 +3,12 @@ class Usuario {
   String _email = "";
   String _senha = "";
 
+  Usuario.nulo();
+
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {
-      "nome": this.nome,
-      "email": this.email,
-      "senha": this.senha
+      "nome": nome,
+      "email": email,
     };
     return map;
   }

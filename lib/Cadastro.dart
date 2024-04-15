@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:zapzap/model/Usuario.dart';
 
 class Cadastro extends StatefulWidget {
-  const Cadastro({Key? key}) : super(key: key);
+  const Cadastro({super.key});
 
   @override
   State<Cadastro> createState() => _CadastroState();
@@ -47,6 +47,7 @@ class _CadastroState extends State<Cadastro> {
 
   Future<bool> _cadastrarUsuario(Usuario user) async {
     try {
+      // aqui é criada a coleção e inserido
       FirebaseAuth auth = FirebaseAuth.instance;
       await auth.createUserWithEmailAndPassword(
         email: user.email,
@@ -66,11 +67,11 @@ class _CadastroState extends State<Cadastro> {
 
 
   Future<bool> _retornoBdFirebase(Usuario user) async {
+
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     await firestore.collection('usuarios').add({
       'nome': user.nome,
       'email': user.email,
-      'senha': user.senha,
 
     });
 
@@ -117,14 +118,14 @@ class _CadastroState extends State<Cadastro> {
           title: Text(title),
           content: Text(
             content,
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("OK"),
+              child: const Text("OK"),
             ),
           ],
         );
@@ -136,16 +137,16 @@ class _CadastroState extends State<Cadastro> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF004D40),
-        title: Text(
+        backgroundColor: const Color(0xFF004D40),
+        title: const Text(
           "Cadastro",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Container(
-        decoration: BoxDecoration(color: Color(0xFF075E54)),
-        padding: EdgeInsets.all(16),
+        decoration: const BoxDecoration(color: Color(0xFF075E54)),
+        padding: const EdgeInsets.all(16),
         child: SizedBox(
           height: MediaQuery.of(context).size.height -
               AppBar().preferredSize.height -
@@ -155,7 +156,7 @@ class _CadastroState extends State<Cadastro> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(bottom: 32),
+                  padding: const EdgeInsets.only(bottom: 32),
                   child: Image.asset(
                     "imagens/usuario.png",
                     width: 180,
@@ -165,7 +166,7 @@ class _CadastroState extends State<Cadastro> {
                 TextField(
                   controller: _controllerNome,
                   keyboardType: TextInputType.text,
-                  style: TextStyle(fontSize: 20),
+                  style: const TextStyle(fontSize: 20),
                   decoration: InputDecoration(
                     labelText: "Nome",
                     filled: true,
@@ -175,11 +176,11 @@ class _CadastroState extends State<Cadastro> {
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _controllerEmail,
                   keyboardType: TextInputType.emailAddress,
-                  style: TextStyle(fontSize: 20),
+                  style: const TextStyle(fontSize: 20),
                   decoration: InputDecoration(
                     labelText: "E-mail",
                     filled: true,
@@ -194,7 +195,7 @@ class _CadastroState extends State<Cadastro> {
                   controller: _controllerSenha,
                   obscureText: true,
                   keyboardType: TextInputType.text,
-                  style: TextStyle(fontSize: 20),
+                  style: const TextStyle(fontSize: 20),
                   decoration: InputDecoration(
                     labelText: "Senha",
                     filled: true,
@@ -204,7 +205,7 @@ class _CadastroState extends State<Cadastro> {
                     ),
                   ),
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: () async {
                     String? mensagem = await _validarCampos();
@@ -213,30 +214,30 @@ class _CadastroState extends State<Cadastro> {
                       _mostrarDialogo("Erro", mensagem ?? "Erro desconhecido.");
                     }
                   },
-                  child: Text(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    backgroundColor: Colors.green,
+                  ),
+                  child: const Text(
                     "Cadastrar",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                     ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32),
-                    ),
-                    backgroundColor: Colors.green,
-                  ),
                 ),
                 if (_mensagem != null)
                   Padding(
-                    padding: EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.only(top: 16),
                     child: Row(
                       children: [
                         Expanded(
                           child: Text(
                             _mensagem!,
-                            style: TextStyle(color: Colors.white,fontSize: 20),
+                            style: const TextStyle(color: Colors.white,fontSize: 20),
                           ),
                         ),
 
