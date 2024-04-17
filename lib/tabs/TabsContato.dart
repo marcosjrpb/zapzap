@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../model/Conversa.dart';
 
 class TabsContato extends StatefulWidget {
-  const TabsContato({super.key});
+  const TabsContato({Key? key}) : super(key: key);
 
   @override
   State<TabsContato> createState() => _TabsContatoState();
