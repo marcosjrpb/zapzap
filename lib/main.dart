@@ -1,6 +1,9 @@
+import 'dart:js';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:zapzap/MyApp.dart';
+import 'package:zapzap/RouteGenerator.dart';
 
 import 'Login.dart';
 import 'firebase_options.dart';
@@ -33,7 +36,6 @@ Future<void> main() async {
     accentColor: const Color(0xFF25D366), // Cor de destaque
     errorColor: const Color(0xFFFF0000), // Cor de erro
     brightness: Brightness.light, // Brilho (claro/escuro)
-
   );
 
   runApp(MaterialApp(
@@ -43,5 +45,7 @@ Future<void> main() async {
       hintColor: const Color(0xff6666666),
       colorScheme: colorScheme, // Aplica o esquema de cores personalizado
     ),
+    initialRoute:"/",
+    onGenerateRoute: RouteGenerator.generateRoute,
   ));
 }

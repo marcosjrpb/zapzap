@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zapzap/Cadastro.dart';
-import 'package:zapzap/MyApp.dart';
-
+import 'RouteGenerator.dart';
 import 'model/Usuario.dart';
 
 class Login extends StatefulWidget {
@@ -46,16 +45,14 @@ class _LoginState extends State<Login> {
       email: user.email,
       password: user.senha,
     ).then((userCredential) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MyApp()),
-      );
+      Navigator.pushReplacementNamed(context, RouteGenerator.ROTA_HOME);
     }).catchError((error) {
       setState(() {
         _mensagemErro = "Erro de autenticação!";
       });
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
