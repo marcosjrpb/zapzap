@@ -3,8 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:zapzap/model/Usuario.dart';
 
+import 'RouteGenerator.dart';
+
 class Cadastro extends StatefulWidget {
-  const Cadastro({Key? key}) : super(key: key);
+  const Cadastro({super.key});
 
   @override
   State<Cadastro> createState() => _CadastroState();
@@ -210,6 +212,7 @@ class _CadastroState extends State<Cadastro> {
                   onPressed: () async {
                     String? mensagem = await _validarCampos();
                     if (mensagem == "Sucesso") {
+
                     } else {
                       _mostrarDialogo("Erro", mensagem ?? "Erro desconhecido.");
                     }

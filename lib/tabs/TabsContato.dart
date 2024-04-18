@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../model/Conversa.dart';
 
 class TabsContato extends StatefulWidget {
-  const TabsContato({Key? key}) : super(key: key);
+  const TabsContato({super.key});
 
   @override
   State<TabsContato> createState() => _TabsContatoState();
@@ -62,11 +62,11 @@ class _TabsContatoState extends State<TabsContato> {
           ),
           title: Text(
             conversa.nome,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           subtitle: Text(
-            (conversa.mensagem) + ' ' + (conversa.horas),
-            style: TextStyle(
+            '${conversa.mensagem} ${conversa.horas}',
+            style: const TextStyle(
               fontSize: 14,
               color: Colors.green,
             ),

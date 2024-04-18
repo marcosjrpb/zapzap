@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:zapzap/RouteGenerator.dart';
 import 'package:zapzap/tabs/TabsContato.dart';
 import 'package:zapzap/tabs/TabsConversas.dart';
 
 import 'Login.dart';
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -37,7 +38,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   _escolhaMenuItem(String itemEscolhido) {
     switch (itemEscolhido) {
       case "Configurações":
-        print("item escolhido" + itemEscolhido);
+   Navigator.pushNamed(context, RouteGenerator.ROTA_CONFIG);
       case "Deslogar":
         _deslogarUsuario();
         break;
@@ -91,7 +92,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
         actions: [
           PopupMenuButton<String>(
             onSelected: _escolhaMenuItem,
-            icon: Icon(Icons.more_vert, color: Colors.white),
+            icon: const Icon(Icons.more_vert, color: Colors.white),
             itemBuilder: (context) {
               return itemMenu.map((String item) {
                 return PopupMenuItem<String>(
@@ -103,7 +104,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
           )
         ],
       ),
-      body: TabBarView(controller: _tabController, children: [
+      body: TabBarView(controller: _tabController, children: const [
         TabsConversas(),
         TabsContato(),
       ]),
@@ -112,7 +113,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 }
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   _LoginPageState createState() => _LoginPageState();

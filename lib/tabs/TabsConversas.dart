@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../model/Conversa.dart';
 
 class TabsConversas extends StatefulWidget {
-  const TabsConversas({Key? key}) : super(key: key);
+  const TabsConversas({super.key});
 
   @override
   State<TabsConversas> createState() => _TabsConversasState();
@@ -72,21 +72,18 @@ class _TabsConversasState extends State<TabsConversas> {
           ),
           title: Text(
             conversa.nome,
-            style:
-            TextStyle(
-                fontWeight: FontWeight.bold
-            ),),
-          subtitle:
-          Text((conversa.mensagem ) +
-              ' ' + (conversa.horas),
-            style: TextStyle(
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(
+            '${conversa.mensagem} ${conversa.horas}',
+            style: const TextStyle(
               fontSize: 14,
               color: Colors.green,
-            ),),
+            ),
+          ),
 
           // Aquí puedes agregar más contenido de conversación si lo deseas
         );
-
       },
     );
   }
