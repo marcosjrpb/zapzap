@@ -14,19 +14,20 @@ class Configuracoes extends StatefulWidget {
 
 class _ConfiguracoesState extends State<Configuracoes> {
   final TextEditingController _controllerNome = TextEditingController();
+  late File? _imagem;
+  late String usuarioLogado;
 
   Future<File?> _recuperarImagem(String tipo) async {
     late File? imagemSelecionada;
-    late File? _imagem;
 
     switch (tipo) {
       case "camera":
         imagemSelecionada =
-            await ImagePicker().pickImage(source: ImageSource.camera) as File?;
+        await ImagePicker().pickImage(source: ImageSource.camera) as File?;
         break;
       case "galeria":
         imagemSelecionada =
-            await ImagePicker().pickImage(source: ImageSource.gallery) as File?;
+        await ImagePicker().pickImage(source: ImageSource.gallery) as File?;
         break;
       default:
         throw ArgumentError('erro na imagem!: $tipo');
@@ -40,21 +41,27 @@ class _ConfiguracoesState extends State<Configuracoes> {
     });
   }
 
-  Future _uploadImagem() async {
+  Future<void> _uploadImagem() async {
     FirebaseStorage storage = FirebaseStorage.instance;
     Reference storageReference =
-        FirebaseStorage.instance.ref().child("perfil")
-            .child("image.jpg");
+    FirebaseStorage.instance.ref().child("perfil").child("$usuarioLogado.jpg");
+
+    // Enviar a imagem para o Firebase Storage
+    await storageReference.putFile(_imagem!);
   }
-  _recuperarDadosUser()async{
+
+  Future<void> _recuperarDadosUser() async {
     FirebaseAuth auth = FirebaseAuth.instance;
-    User user = await auth.currentUser;
+    final User? user = await auth.currentUser;
+    setState(() {
+      usuarioLogado = user!.uid;
+    });
   }
+
   @override
   void initState() {
     super.initState();
-
-
+    _recuperarDadosUser();
   }
 
   @override
@@ -72,8 +79,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
                 CircleAvatar(
                   radius: 100,
                   backgroundColor: Colors.green,
-                  backgroundImage: NetworkImage(
-                      "https://firebasestorage.googleapis.com/v0/b/zapzap-710df.appspot.com/o/perfil%2Ffile.jpg?alt=media&token=be9086d5-0630-45c7-a105-ef4480e994f3"),
+                  backgroundImage: _imagem != null ? FileImage(_imagem!) : null,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -81,15 +87,13 @@ class _ConfiguracoesState extends State<Configuracoes> {
                     TextButton(
                       child: Text("Câmera"),
                       onPressed: () async {
-                        File? imagem = await _recuperarImagem("camera");
-                        // Faça algo com a imagem selecionada, se necessário
+                        await _recuperarImagem("camera");
                       },
                     ),
                     TextButton(
                       child: Text("Galeria"),
                       onPressed: () async {
-                        File? imagem = await _recuperarImagem("galeria");
-                        // Faça algo com a imagem selecionada, se necessário
+                        await _recuperarImagem("galeria");
                       },
                     ),
                   ],
