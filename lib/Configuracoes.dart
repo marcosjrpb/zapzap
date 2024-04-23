@@ -14,48 +14,43 @@ class Configuracoes extends StatefulWidget {
 
 class _ConfiguracoesState extends State<Configuracoes> {
   final TextEditingController _controllerNome = TextEditingController();
-  late File? _imagem;
-  late String usuarioLogado;
+  late File? _imagem = null;
+  late String usuarioLogado = "";
 
-  Future<File?> _recuperarImagem(String tipo) async {
+  Future<void> _recuperarImagem(String tipo) async {
     late File? imagemSelecionada;
 
-    switch (tipo) {
-      case "camera":
-        imagemSelecionada =
-        await ImagePicker().pickImage(source: ImageSource.camera) as File?;
-        break;
-      case "galeria":
-        imagemSelecionada =
-        await ImagePicker().pickImage(source: ImageSource.gallery) as File?;
-        break;
-      default:
-        throw ArgumentError('erro na imagem!: $tipo');
-    }
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: tipo == "camera" ? ImageSource.camera : ImageSource.gallery,
+    );
 
-    setState(() {
-      _imagem = imagemSelecionada;
-      if (_imagem != null) {
+    if (pickedFile != null) {
+      setState(() {
+        _imagem = File(pickedFile.path);
         _uploadImagem();
-      }
-    });
+      });
+    }
   }
 
   Future<void> _uploadImagem() async {
-    FirebaseStorage storage = FirebaseStorage.instance;
-    Reference storageReference =
-    FirebaseStorage.instance.ref().child("perfil").child("$usuarioLogado.jpg");
+    if (_imagem != null) {
+      FirebaseStorage storage = FirebaseStorage.instance;
+      Reference storageReference = storage.ref().child("perfil").child("$usuarioLogado.jpg");
 
-    // Enviar a imagem para o Firebase Storage
-    await storageReference.putFile(_imagem!);
+      // Enviar a imagem para o Firebase Storage
+      await storageReference.putFile(_imagem!);
+    }
   }
 
   Future<void> _recuperarDadosUser() async {
     FirebaseAuth auth = FirebaseAuth.instance;
-    final User? user = await auth.currentUser;
-    setState(() {
-      usuarioLogado = user!.uid;
-    });
+    final User? user = auth.currentUser;
+    if (user != null) {
+      setState(() {
+        usuarioLogado = user.uid;
+      });
+    }
   }
 
   @override
@@ -112,7 +107,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
+                  onPressed: () {
                     // Implemente a lógica para salvar as configurações
                   },
                   style: ElevatedButton.styleFrom(
