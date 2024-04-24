@@ -1,3 +1,4 @@
+import 'dart:html';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -39,7 +40,15 @@ class _ConfiguracoesState extends State<Configuracoes> {
       Reference storageReference = storage.ref().child("perfil").child("$usuarioLogado.jpg");
 
       // Enviar a imagem para o Firebase Storage
-      await storageReference.putFile(_imagem!);
+
+      UploadTask task = storageReference.putFile(_imagem!);
+      task.snapshotEvents.listen((TaskSnapshot snapshot) {
+        // Aqui você pode lidar com os eventos do upload
+        // Por exemplo, você pode atualizar a interface do usuário com o progresso do upload
+        // ou exibir mensagens de sucesso/erro com base no evento recebido
+      });
+
+
     }
   }
 
