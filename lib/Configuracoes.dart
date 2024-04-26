@@ -1,4 +1,4 @@
-import 'dart:html';
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,57 +17,65 @@ class _ConfiguracoesState extends State<Configuracoes> {
   final TextEditingController _controllerNome = TextEditingController();
   late File? _imagem = null;
   late String usuarioLogado = "";
+  bool _subindoImagem = false;
 
   Future<void> _recuperarImagem(String tipo) async {
-    late File? imagemSelecionada;
+     final picker = ImagePicker();
 
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: tipo == "camera" ? ImageSource.camera : ImageSource.gallery,
-    );
+    final source = tipo == "camera" ?
+    ImageSource.camera :
+    ImageSource.gallery;
+
+    final pickedFile = await picker.pickImage( source: source);
 
     if (pickedFile != null) {
       setState(() {
+        _subindoImagem = true;
         _imagem = File(pickedFile.path);
         _uploadImagem();
       });
     }
   }
 
+
   Future<void> _uploadImagem() async {
     if (_imagem != null) {
       FirebaseStorage storage = FirebaseStorage.instance;
-      Reference storageReference = storage.ref().child("perfil").child("$usuarioLogado.jpg");
+      Reference storageReference =
+      storage.ref().child("perfil").child("$usuarioLogado.jpg");
 
       // Enviar a imagem para o Firebase Storage
-
       UploadTask task = storageReference.putFile(_imagem!);
+// todo preciso entender porque nao esta enviando para Fire
       task.snapshotEvents.listen((TaskSnapshot snapshot) {
         // Aqui você pode lidar com os eventos do upload
         // Por exemplo, você pode atualizar a interface do usuário com o progresso do upload
-        // ou exibir mensagens de sucesso/erro com base no evento recebido
+        double progress = snapshot.bytesTransferred / snapshot.totalBytes;
+        print('Progresso do upload: $progress');
+
+        switch (snapshot.state) {
+          case TaskState.running:
+            _subindoImagem = true;
+            print('Upload em progresso...');
+            break;
+          case TaskState.success:
+            _subindoImagem = false;
+            print('Upload concluído com sucesso!');
+            // Aqui você pode adicionar lógica adicional para o que fazer após o upload bem-sucedido
+            break;
+          case TaskState.error:
+
+          // marcosjrpbSe houver um erro, obtemos o erro a partir de task.snapshot.error
+           // print('Erro durante o upload: ${task.snapshot.error}');
+            // Aqui você pode lidar com o erro de upload, seja exibindo uma mensagem de erro ou tentando novamente
+            break;
+          default:
+          // Outros estados, se necessário
+            break;
+        }
       });
-
-
     }
   }
-
-  Future<void> _recuperarDadosUser() async {
-    FirebaseAuth auth = FirebaseAuth.instance;
-    final User? user = auth.currentUser;
-    if (user != null) {
-      setState(() {
-        usuarioLogado = user.uid;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _recuperarDadosUser();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,6 +88,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                  _subindoImagem? CircularProgressIndicator():Container(),
                 CircleAvatar(
                   radius: 100,
                   backgroundColor: Colors.green,
@@ -117,7 +126,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Implemente a lógica para salvar as configurações
+                    _recuperarImagem("camera");
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
