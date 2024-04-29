@@ -1,6 +1,5 @@
-
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -15,67 +14,95 @@ class Configuracoes extends StatefulWidget {
 
 class _ConfiguracoesState extends State<Configuracoes> {
   final TextEditingController _controllerNome = TextEditingController();
-  late File? _imagem = null;
+  File? _imagem;
   late String usuarioLogado = "";
   bool _subindoImagem = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _obterUsuarioLogado();
+  }
+
+  Future<void> _obterUsuarioLogado() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        usuarioLogado = user.uid;
+      });
+    }
+  }
+
   Future<void> _recuperarImagem(String tipo) async {
-     final picker = ImagePicker();
-
-    final source = tipo == "camera" ?
-    ImageSource.camera :
-    ImageSource.gallery;
-
-    final pickedFile = await picker.pickImage( source: source);
+    final picker = ImagePicker();
+    final source = tipo == "camera" ? ImageSource.camera : ImageSource.gallery;
+    final pickedFile = await picker.pickImage(source: source);
 
     if (pickedFile != null) {
       setState(() {
         _subindoImagem = true;
         _imagem = File(pickedFile.path);
-        _uploadImagem();
       });
+      await _uploadImagem();
     }
   }
-
 
   Future<void> _uploadImagem() async {
-    if (_imagem != null) {
-      FirebaseStorage storage = FirebaseStorage.instance;
-      Reference storageReference =
-      storage.ref().child("perfil").child("$usuarioLogado.jpg");
+    try {
+      if (_imagem != null) {
+        FirebaseStorage storage = FirebaseStorage.instance;
+        Reference storageReference =
+        storage.ref().child("perfil").child("$usuarioLogado.jpg");
 
-      // Enviar a imagem para o Firebase Storage
-      UploadTask task = storageReference.putFile(_imagem!);
-// todo preciso entender porque nao esta enviando para Fire
-      task.snapshotEvents.listen((TaskSnapshot snapshot) {
-        // Aqui você pode lidar com os eventos do upload
-        // Por exemplo, você pode atualizar a interface do usuário com o progresso do upload
-        double progress = snapshot.bytesTransferred / snapshot.totalBytes;
-        print('Progresso do upload: $progress');
+        UploadTask task = storageReference.putFile(_imagem!);
 
-        switch (snapshot.state) {
-          case TaskState.running:
-            _subindoImagem = true;
-            print('Upload em progresso...');
-            break;
-          case TaskState.success:
-            _subindoImagem = false;
-            print('Upload concluído com sucesso!');
-            // Aqui você pode adicionar lógica adicional para o que fazer após o upload bem-sucedido
-            break;
-          case TaskState.error:
+        task.snapshotEvents.listen((TaskSnapshot snapshot) {
+          double progress = snapshot.bytesTransferred / snapshot.totalBytes;
+          print('Progresso do upload: $progress');
 
-          // marcosjrpbSe houver um erro, obtemos o erro a partir de task.snapshot.error
-           // print('Erro durante o upload: ${task.snapshot.error}');
-            // Aqui você pode lidar com o erro de upload, seja exibindo uma mensagem de erro ou tentando novamente
-            break;
-          default:
-          // Outros estados, se necessário
-            break;
-        }
+          switch (snapshot.state) {
+            case TaskState.running:
+              setState(() {
+                _subindoImagem = true;
+              });
+              print('Upload em progresso...');
+              break;
+            case TaskState.success:
+              setState(() {
+                _subindoImagem = false;
+              });
+              print('Upload concluído com sucesso!');
+              _mostrarMensagem('Upload concluído com sucesso!');
+              break;
+            case TaskState.error:
+              setState(() {
+                _subindoImagem = false;
+              });
+              print('Erro durante o upload: ${TaskState.error}');
+              _mostrarMensagem('Erro durante o upload: ${TaskState.error}');
+              break;
+            default:
+              break;
+          }
+        });
+      }
+    } catch (e) {
+      print('Erro durante o upload: $e');
+      _mostrarMensagem('Erro durante o upload: $e');
+      setState(() {
+        _subindoImagem = false;
       });
     }
   }
+
+  void _mostrarMensagem(String mensagem) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensagem),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,31 +110,55 @@ class _ConfiguracoesState extends State<Configuracoes> {
         title: Text("Configurações"),
       ),
       body: Container(
+        color: Color(0xFF004D40),
         padding: EdgeInsets.all(16),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
               children: [
-                  _subindoImagem? CircularProgressIndicator():Container(),
-                CircleAvatar(
-                  radius: 100,
-                  backgroundColor: Colors.green,
-                  backgroundImage: _imagem != null ? FileImage(_imagem!) : null,
+                _subindoImagem ? CircularProgressIndicator() : SizedBox(),
+                Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    CircleAvatar(
+                      radius: 100,
+                      backgroundColor: Colors.green[100],
+                      backgroundImage: _imagem != null
+                          ? FileImage(_imagem!)
+                          : null,
+                      child: _imagem != null
+                          ? null
+                          : SizedBox(
+                        width: 120,
+                        height: 120,
+                        child: Image(
+                          image: AssetImage('imagens/usuario.png'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+
+
+
+
+                  ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextButton(
-                      child: Text("Câmera"),
+                    IconButton(
                       onPressed: () async {
                         await _recuperarImagem("camera");
                       },
+                      icon: Icon(Icons.camera_alt, size: 50),
+                      color: Colors.green,
                     ),
-                    TextButton(
-                      child: Text("Galeria"),
+                    IconButton(
                       onPressed: () async {
                         await _recuperarImagem("galeria");
                       },
+                      icon: Icon(Icons.photo, size: 50),
+                      color: Colors.green,
                     ),
                   ],
                 ),
@@ -124,9 +175,10 @@ class _ConfiguracoesState extends State<Configuracoes> {
                     ),
                   ),
                 ),
+                Padding(padding: EdgeInsets.only(top: 10)),
                 ElevatedButton(
                   onPressed: () {
-                    _recuperarImagem("camera");
+                    _uploadImagem();
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -134,12 +186,18 @@ class _ConfiguracoesState extends State<Configuracoes> {
                       borderRadius: BorderRadius.circular(32),
                     ),
                     backgroundColor: Colors.green,
+                    elevation: 8,
                   ),
-                  child: const Text(
-                    "Cadastrar",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
+                  child: Container(
+                    width: double.infinity,
+                    child: Center(
+                      child: Text(
+                        "Cadastrar",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                        ),
+                      ),
                     ),
                   ),
                 ),
