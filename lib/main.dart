@@ -1,11 +1,12 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:zapzap/RouteGenerator.dart';
 
 import 'Login.dart';
 import 'firebase_options.dart';
+const kWebRecaptchaSiteKey ="AIzaSyAAvw21UBKxCJ4PE_WGT1gZiy6Cb2dBCP4";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,8 +14,16 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  await FirebaseAppCheck.instance
+  // Your personal reCaptcha public key goes here:
+      .activate(
+    androidProvider: AndroidProvider.debug,
+    appleProvider: AppleProvider.debug,
+    webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
+  );
+
   // Initialize Firestore
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
 
   // Define a cor primária personalizada
   MaterialColor primaryColor = const MaterialColor(0xFF075E54, {

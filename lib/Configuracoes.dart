@@ -5,6 +5,13 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+// Prefixo para diferenciar os tipos ImageSource dos pacotes diferentes
+import 'package:image_picker_platform_interface/src/types/image_source.dart'
+as platform;
+
+// Constantes para tipos de imagem
+enum ImageSource { camera, gallery }
+
 class Configuracoes extends StatefulWidget {
   const Configuracoes({Key? key}) : super(key: key);
 
@@ -15,8 +22,9 @@ class Configuracoes extends StatefulWidget {
 class _ConfiguracoesState extends State<Configuracoes> {
   final TextEditingController _controllerNome = TextEditingController();
   File? _imagem;
-  late String usuarioLogado = "";
+  late String _idUsuarioLogado;
   bool _subindoImagem = false;
+  late String _urlImagemRecuperada;
 
   @override
   void initState() {
@@ -25,34 +33,44 @@ class _ConfiguracoesState extends State<Configuracoes> {
   }
 
   Future<void> _obterUsuarioLogado() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      setState(() {
-        usuarioLogado = user.uid;
-      });
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        setState(() {
+          _idUsuarioLogado = user.uid;
+        });
+      }
+    } catch (e) {
+      _mostrarErro("Erro ao obter usuário logado: $e");
     }
   }
 
-  Future<void> _recuperarImagem(String tipo) async {
+  Future<void> _recuperarImagem(ImageSource tipo) async {
     final picker = ImagePicker();
-    final source = tipo == "camera" ? ImageSource.camera : ImageSource.gallery;
-    final pickedFile = await picker.pickImage(source: source);
+    final source = tipo == ImageSource.camera
+        ? platform.ImageSource.camera // Usando o prefixo para diferenciar os tipos
+        : platform.ImageSource.gallery;
+    try {
+      final pickedFile = await picker.pickImage(source: source);
 
-    if (pickedFile != null) {
-      setState(() {
-        _subindoImagem = true;
-        _imagem = File(pickedFile.path);
-      });
-      await _uploadImagem();
+      if (pickedFile != null) {
+        setState(() {
+          _subindoImagem = true;
+          _imagem = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      _mostrarErro("Erro ao recuperar imagem: $e");
     }
   }
+
 
   Future<void> _uploadImagem() async {
     try {
       if (_imagem != null) {
         FirebaseStorage storage = FirebaseStorage.instance;
         Reference storageReference =
-        storage.ref().child("perfil").child("$usuarioLogado.jpg");
+        storage.ref().child("perfil").child("$_idUsuarioLogado.jpg");
 
         UploadTask task = storageReference.putFile(_imagem!);
 
@@ -79,19 +97,31 @@ class _ConfiguracoesState extends State<Configuracoes> {
                 _subindoImagem = false;
               });
               print('Erro durante o upload: ${TaskState.error}');
-              _mostrarMensagem('Erro durante o upload: ${TaskState.error}');
+              _mostrarErro('Erro durante o upload: ${TaskState.error}');
               break;
             default:
               break;
           }
+
+          _recuperarUrlImagem(snapshot);
         });
       }
     } catch (e) {
-      print('Erro durante o upload: $e');
-      _mostrarMensagem('Erro durante o upload: $e');
+      _mostrarErro('Erro durante o upload: $e');
       setState(() {
         _subindoImagem = false;
       });
+    }
+  }
+
+  Future<void> _recuperarUrlImagem(TaskSnapshot snapshot) async {
+    try {
+      String url = await snapshot.ref.getDownloadURL();
+      setState(() {
+        _urlImagemRecuperada = url;
+      });
+    } catch (e) {
+      _mostrarErro('Erro ao recuperar URL da imagem: $e');
     }
   }
 
@@ -99,6 +129,15 @@ class _ConfiguracoesState extends State<Configuracoes> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensagem),
+      ),
+    );
+  }
+
+  void _mostrarErro(String erro) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(erro),
+        backgroundColor: Colors.red,
       ),
     );
   }
@@ -121,11 +160,10 @@ class _ConfiguracoesState extends State<Configuracoes> {
                   alignment: Alignment.bottomRight,
                   children: [
                     CircleAvatar(
-                      radius: 100,
+                      radius: 130,
                       backgroundColor: Colors.green[100],
-                      backgroundImage: _imagem != null
-                          ? FileImage(_imagem!)
-                          : null,
+                      backgroundImage:
+                      _imagem != null ? FileImage(_imagem!) : null,
                       child: _imagem != null
                           ? null
                           : SizedBox(
@@ -137,10 +175,6 @@ class _ConfiguracoesState extends State<Configuracoes> {
                         ),
                       ),
                     ),
-
-
-
-
                   ],
                 ),
                 Row(
@@ -148,14 +182,14 @@ class _ConfiguracoesState extends State<Configuracoes> {
                   children: [
                     IconButton(
                       onPressed: () async {
-                        await _recuperarImagem("camera");
+                        await _recuperarImagem(ImageSource.camera);
                       },
                       icon: Icon(Icons.camera_alt, size: 50),
                       color: Colors.green,
                     ),
                     IconButton(
                       onPressed: () async {
-                        await _recuperarImagem("galeria");
+                        await _recuperarImagem(ImageSource.gallery);
                       },
                       icon: Icon(Icons.photo, size: 50),
                       color: Colors.green,
@@ -178,7 +212,8 @@ class _ConfiguracoesState extends State<Configuracoes> {
                 Padding(padding: EdgeInsets.only(top: 10)),
                 ElevatedButton(
                   onPressed: () {
-                    _uploadImagem();
+                    // Adicione aqui a lógica para atualizar o nome do usuário
+                    _atualizarNomeUsuario();
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -207,5 +242,23 @@ class _ConfiguracoesState extends State<Configuracoes> {
         ),
       ),
     );
+  }
+
+  void _atualizarNomeUsuario() async {
+    String novoNome = _controllerNome.text.trim();
+    if (novoNome.isNotEmpty) {
+      try {
+        await _uploadImagem();
+        // Limpar o TextField e o CircleAvatar somente após o upload da imagem ser concluído
+        _controllerNome.clear();
+        setState(() {
+          _imagem = null;
+        });
+      } catch (e) {
+        _mostrarErro("Erro ao atualizar nome de usuário: $e");
+      }
+    } else {
+      _mostrarErro("O nome não pode estar vazio.");
+    }
   }
 }
