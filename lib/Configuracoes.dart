@@ -1,16 +1,10 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
-// Prefixo para diferenciar os tipos ImageSource dos pacotes diferentes
-import 'package:image_picker_platform_interface/src/types/image_source.dart'
-as platform;
-
-// Constantes para tipos de imagem
-enum ImageSource { camera, gallery }
 
 class Configuracoes extends StatefulWidget {
   const Configuracoes({Key? key}) : super(key: key);
@@ -29,16 +23,23 @@ class _ConfiguracoesState extends State<Configuracoes> {
   @override
   void initState() {
     super.initState();
-    _obterUsuarioLogado();
+    _recuperardadosUsuario();
   }
 
-  Future<void> _obterUsuarioLogado() async {
+  Future<void> _recuperardadosUsuario() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         setState(() {
           _idUsuarioLogado = user.uid;
         });
+
+        FirebaseFirestore db = FirebaseFirestore.instance;
+        DocumentSnapshot snapshot =
+        await db.collection("usuarios").doc(_idUsuarioLogado).get();
+        Map<String, dynamic>? dados = snapshot.data() as Map<String, dynamic>?;
+        _controllerNome.text = dados?["nome"] ?? "";
+        _urlImagemRecuperada = dados?["urlImagem"] ?? "";
       }
     } catch (e) {
       _mostrarErro("Erro ao obter usuário logado: $e");
@@ -47,11 +48,8 @@ class _ConfiguracoesState extends State<Configuracoes> {
 
   Future<void> _recuperarImagem(ImageSource tipo) async {
     final picker = ImagePicker();
-    final source = tipo == ImageSource.camera
-        ? platform.ImageSource.camera // Usando o prefixo para diferenciar os tipos
-        : platform.ImageSource.gallery;
     try {
-      final pickedFile = await picker.pickImage(source: source);
+      final pickedFile = await picker.pickImage(source: tipo);
 
       if (pickedFile != null) {
         setState(() {
@@ -62,8 +60,14 @@ class _ConfiguracoesState extends State<Configuracoes> {
     } catch (e) {
       _mostrarErro("Erro ao recuperar imagem: $e");
     }
-  }
+    setState(() {
+      if( _imagem != null ){
+        _subindoImagem = true;
+        _uploadImagem();
+      }
+    });
 
+  }
 
   Future<void> _uploadImagem() async {
     try {
@@ -91,6 +95,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
               });
               print('Upload concluído com sucesso!');
               _mostrarMensagem('Upload concluído com sucesso!');
+              _recuperarUrlImagem(snapshot);
               break;
             case TaskState.error:
               setState(() {
@@ -102,8 +107,6 @@ class _ConfiguracoesState extends State<Configuracoes> {
             default:
               break;
           }
-
-          _recuperarUrlImagem(snapshot);
         });
       }
     } catch (e) {
@@ -117,6 +120,8 @@ class _ConfiguracoesState extends State<Configuracoes> {
   Future<void> _recuperarUrlImagem(TaskSnapshot snapshot) async {
     try {
       String url = await snapshot.ref.getDownloadURL();
+      _atualizarUrlImagemFireStore(url);
+
       setState(() {
         _urlImagemRecuperada = url;
       });
@@ -124,6 +129,31 @@ class _ConfiguracoesState extends State<Configuracoes> {
       _mostrarErro('Erro ao recuperar URL da imagem: $e');
     }
   }
+
+  _atualizarUrlImagemFireStore(String url) {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    Map<String, dynamic> dadosAtualizar = {"urlImagem": url};
+    firestore
+        .collection("usuarios")
+        .doc(_idUsuarioLogado)
+        .update(dadosAtualizar);
+  }
+
+  Future<void> _atualizarNomeFirestore() async {
+    String nome = _controllerNome.text;
+    try {
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      Map<String, dynamic> dadosAtualizar = {"nome": nome};
+      await firestore
+          .collection("usuarios")
+          .doc(_idUsuarioLogado)
+          .update(dadosAtualizar);
+      _mostrarMensagem("Nome atualizado com sucesso!");
+    } catch (e) {
+      _mostrarErro("Erro ao atualizar nome de usuário: $e "+_idUsuarioLogado);
+    }
+  }
+
 
   void _mostrarMensagem(String mensagem) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -155,23 +185,31 @@ class _ConfiguracoesState extends State<Configuracoes> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                _subindoImagem ? CircularProgressIndicator() : SizedBox(),
+                Container(
+                  padding: EdgeInsets.all(16),
+                  child:
+                  _subindoImagem
+                      ? CircularProgressIndicator()
+                      : SizedBox(),
+                ),
                 Stack(
                   alignment: Alignment.bottomRight,
                   children: [
                     CircleAvatar(
                       radius: 130,
-                      backgroundColor: Colors.green[100],
+                      backgroundColor: Colors.green[400],
                       backgroundImage:
-                      _imagem != null ? FileImage(_imagem!) : null,
+                      _imagem != null
+                          ? FileImage(_imagem!)
+                          : null,
                       child: _imagem != null
                           ? null
                           : SizedBox(
-                        width: 120,
-                        height: 120,
+                        width: 160,
+                        height: 160,
                         child: Image(
                           image: AssetImage('imagens/usuario.png'),
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
@@ -200,6 +238,9 @@ class _ConfiguracoesState extends State<Configuracoes> {
                   controller: _controllerNome,
                   keyboardType: TextInputType.text,
                   style: const TextStyle(fontSize: 20),
+                  // onChanged: (texto){
+                  //   _atualizarNomeFirestore(texto);
+                  // },
                   decoration: InputDecoration(
                     labelText: "Nome",
                     filled: true,
@@ -212,8 +253,12 @@ class _ConfiguracoesState extends State<Configuracoes> {
                 Padding(padding: EdgeInsets.only(top: 10)),
                 ElevatedButton(
                   onPressed: () {
-                    // Adicione aqui a lógica para atualizar o nome do usuário
-                    _atualizarNomeUsuario();
+                    String novoNome = _controllerNome.text.trim();
+                    if (novoNome.isNotEmpty) {
+                      _atualizarNomeFirestore();
+                    } else {
+                      _mostrarErro("O nome não pode estar vazio.");
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -244,21 +289,4 @@ class _ConfiguracoesState extends State<Configuracoes> {
     );
   }
 
-  void _atualizarNomeUsuario() async {
-    String novoNome = _controllerNome.text.trim();
-    if (novoNome.isNotEmpty) {
-      try {
-        await _uploadImagem();
-        // Limpar o TextField e o CircleAvatar somente após o upload da imagem ser concluído
-        _controllerNome.clear();
-        setState(() {
-          _imagem = null;
-        });
-      } catch (e) {
-        _mostrarErro("Erro ao atualizar nome de usuário: $e");
-      }
-    } else {
-      _mostrarErro("O nome não pode estar vazio.");
-    }
-  }
 }

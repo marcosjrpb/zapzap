@@ -14,13 +14,13 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await FirebaseAppCheck.instance
-  // Your personal reCaptcha public key goes here:
-      .activate(
-    androidProvider: AndroidProvider.debug,
-    appleProvider: AppleProvider.debug,
-    webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
-  );
+  // await FirebaseAppCheck.instance
+  // // Your personal reCaptcha public key goes here:
+  //     .activate(
+  //   androidProvider: AndroidProvider.debug,
+  //   appleProvider: AppleProvider.debug,
+  //   webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
+  // );
 
   // Initialize Firestore
 

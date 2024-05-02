@@ -3,10 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:zapzap/model/Usuario.dart';
 
-import 'RouteGenerator.dart';
-
 class Cadastro extends StatefulWidget {
-  const Cadastro({super.key});
+  const Cadastro({Key? key}) : super(key: key);
 
   @override
   State<Cadastro> createState() => _CadastroState();
@@ -18,9 +16,7 @@ class _CadastroState extends State<Cadastro> {
   final TextEditingController _controllerSenha = TextEditingController();
   String? _mensagem;
 
-  // Adicionando variáveis para controle de edição
   bool _visualizouRetorno = false;
-
 
   Future<String?> _validarCampos() async {
     String nome = _controllerNome.text.trim();
@@ -38,64 +34,56 @@ class _CadastroState extends State<Cadastro> {
       return "Senha deve conter pelo menos 8 caracteres, incluindo letras e números.";
     }
 
-    Usuario user = Usuario.comNome(nome: nome,  email: email, senha: senha);
-    bool cadastrado = await _cadastrarUsuario(user);
-    if (cadastrado) {
+    Usuario user = Usuario.comNome(nome: nome, email: email, senha: senha);
+    String? uid = await _cadastrarUsuario(user);
+    if (uid != null) {
+      await _retornoBdFirebase(user, uid);
       return "Sucesso";
     } else {
       return "Erro ao cadastrar usuário.";
     }
   }
 
-  Future<bool> _cadastrarUsuario(Usuario user) async {
+  Future<String?> _cadastrarUsuario(Usuario user) async {
     try {
-      // aqui é criada a coleção e inserido
       FirebaseAuth auth = FirebaseAuth.instance;
-      await auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
         email: user.email,
         password: user.senha,
       );
-      _mensagemSucesso("Cadastro realizado com sucesso!");
-      await _retornoBdFirebase(
-          user); // Chamada para a função de retorno do banco de dados
-      return true;
+
+      return userCredential.user?.uid;
     } on FirebaseAuthException catch (error) {
       String errorMessage = "Erro no cadastro: ${error.message}";
       _mensagemErro(errorMessage);
       print(errorMessage);
-      return false;
+      return null;
     }
   }
 
-
-  Future<bool> _retornoBdFirebase(Usuario user) async {
-
+  Future<void> _retornoBdFirebase(Usuario user, String uid) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    await firestore.collection('usuarios').add({
+    await firestore.collection('usuarios').doc(uid).set({
       'nome': user.nome,
       'email': user.email,
-
     });
 
     _mensagemSucessoBd("Dados cadastrados, "
         "\n Nome:  ${user.nome}"
         "\n E-mail:  ${user.email}"
-        "\n Senha: ${user.senha} ", );
+        "\n Senha: ${user.senha} ");
 
+    _limparCampos();
+    setState(() {
+      _visualizouRetorno = true;
+    });
+  }
 
+  void _limparCampos() {
     _controllerNome.clear();
     _controllerSenha.clear();
     _controllerEmail.clear();
-
-    // Atualizar o estado para indicar que o retorno foi visto
-    setState(() {
-      _visualizouRetorno = true;
-
-    });
-
-    return true;
   }
-
 
   void _mensagemErro(String errorMessage) {
     _mostrarDialogo("Erro", errorMessage);
@@ -212,7 +200,7 @@ class _CadastroState extends State<Cadastro> {
                   onPressed: () async {
                     String? mensagem = await _validarCampos();
                     if (mensagem == "Sucesso") {
-
+                      // Cadastro realizado com sucesso
                     } else {
                       _mostrarDialogo("Erro", mensagem ?? "Erro desconhecido.");
                     }
@@ -243,7 +231,6 @@ class _CadastroState extends State<Cadastro> {
                             style: const TextStyle(color: Colors.white,fontSize: 20),
                           ),
                         ),
-
                       ],
                     ),
                   ),
