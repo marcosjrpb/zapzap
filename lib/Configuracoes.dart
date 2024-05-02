@@ -18,7 +18,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
   File? _imagem;
   late String _idUsuarioLogado;
   bool _subindoImagem = false;
-  late String _urlImagemRecuperada;
+  String _urlImagemRecuperada = "";
 
   @override
   void initState() {
@@ -199,18 +199,18 @@ class _ConfiguracoesState extends State<Configuracoes> {
                       radius: 130,
                       backgroundColor: Colors.green[400],
                       backgroundImage:
-                      _imagem != null
-                          ? FileImage(_imagem!)
+                      _urlImagemRecuperada != null
+                          ? NetworkImage(_urlImagemRecuperada)
                           : null,
                       child: _imagem != null
                           ? null
                           : SizedBox(
                         width: 160,
                         height: 160,
-                        child: Image(
-                          image: AssetImage('imagens/usuario.png'),
-                          fit: BoxFit.contain,
-                        ),
+                        // child: Image(
+                        //   image: AssetImage('imagens/usuario.png'),
+                        //   fit: BoxFit.contain,
+                        // ),
                       ),
                     ),
                   ],
@@ -253,6 +253,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
                 Padding(padding: EdgeInsets.only(top: 10)),
                 ElevatedButton(
                   onPressed: () {
+
                     String novoNome = _controllerNome.text.trim();
                     if (novoNome.isNotEmpty) {
                       _atualizarNomeFirestore();
