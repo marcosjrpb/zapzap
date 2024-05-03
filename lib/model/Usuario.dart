@@ -4,6 +4,10 @@ class Usuario {
   String? _senha;
   String? _imagem;
 
+
+  Usuario.vazio();
+
+
   // Construtor padrão
   Usuario({
     required String nome,

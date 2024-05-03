@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../RouteGenerator.dart';
 import '../model/Usuario.dart';
 
 class TabsContatos extends StatefulWidget {
@@ -83,6 +84,9 @@ class _TabsContatosState extends State<TabsContatos> {
                   elevation: 4,
                   margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
+                    onTap: (){
+                      Navigator.pushNamed(context, RouteGenerator.ROTA_MENSAGENS, arguments: usuario);
+                    },
                     leading: Container(
                       width: 60,
                       height: 60,
