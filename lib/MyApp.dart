@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zapzap/RouteGenerator.dart';
-import 'package:zapzap/tabs/TabsContato.dart';
+import 'package:zapzap/tabs/TabsContatos.dart';
 import 'package:zapzap/tabs/TabsConversas.dart';
 
 import 'Login.dart';
@@ -106,7 +106,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
       ),
       body: TabBarView(controller: _tabController, children: const [
         TabsConversas(),
-        TabsContato(),
+        TabsContatos(),
       ]),
     );
   }

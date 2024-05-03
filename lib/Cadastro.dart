@@ -34,7 +34,7 @@ class _CadastroState extends State<Cadastro> {
       return "Senha deve conter pelo menos 8 caracteres, incluindo letras e números.";
     }
 
-    Usuario user = Usuario.comNome(nome: nome, email: email, senha: senha);
+    Usuario user = Usuario.cad(nome: nome, email: email, senha:senha);
     String? uid = await _cadastrarUsuario(user);
     if (uid != null) {
       await _retornoBdFirebase(user, uid);

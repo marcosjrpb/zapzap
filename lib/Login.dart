@@ -35,7 +35,7 @@ class _LoginState extends State<Login> {
       return;
     }
 
-    Usuario user = Usuario(email: email, senha: senha);
+    Usuario user = Usuario.login(email, senha);
     logarUsuario(user);
   }
 
