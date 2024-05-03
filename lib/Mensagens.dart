@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'model/Usuario.dart';
 
@@ -11,6 +12,21 @@ class Mensagens extends StatefulWidget {
 }
 
 class _MensagensState extends State<Mensagens> {
+  List<String> listaMensagens = [
+    "Olá meu amigo, tudo bem?",
+    "Tudo ótimo!!! e contigo?",
+    "Estou muito bem!! queria ver uma coisa contigo, você vai na corrida de sábado?",
+    "Não sei ainda :(",
+    "Pq se você fosse, queria ver se posso ir com você...",
+    "Posso te confirma no sábado? vou ver isso",
+    "Opa! tranquilo",
+    "Excelente!!",
+    "Estou animado para essa corrida, não vejo a hora de chegar! ;) ",
+    "Vai estar bem legal!! muita gente",
+    "vai sim!",
+    "Lembra do carro que tinha te falado",
+    "Que legal!!"
+  ];
   TextEditingController _controllerMensagem = TextEditingController();
 
   _enviarMensagem() {
@@ -43,7 +59,7 @@ class _MensagensState extends State<Mensagens> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   prefixIcon: IconButton(
-                    icon: Icon(Icons.camera_alt_outlined),
+                    icon: Icon(Icons.camera_alt_outlined,color:  Color(0xff075e54)),
                     onPressed: _enviarFoto,
                   ),
 
@@ -67,6 +83,29 @@ class _MensagensState extends State<Mensagens> {
         ],
       ),
     );
+  var listView = Expanded(
+      child: ListView.builder(
+        itemCount: listaMensagens.length,
+          itemBuilder: (context, indice){
+
+            return Align(
+              alignment: Alignment.centerRight,
+              child: Padding(padding: EdgeInsets.all(6),
+              child: Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Color(0xffd2ffa5),
+                  borderRadius: BorderRadius.all(Radius.circular(8))
+                ),
+                child: Text(listaMensagens[indice],style: TextStyle(fontSize: 18),),
+              ),
+              ),
+            );
+          }
+
+      ),
+  );
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -104,8 +143,7 @@ class _MensagensState extends State<Mensagens> {
             padding: EdgeInsets.all(8),
             child: Column(
               children: [
-                Text("list"),
-                Text("list"),
+                listView,
                 caixaMensagem,
               ],
             ),

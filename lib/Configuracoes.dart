@@ -37,9 +37,13 @@ class _ConfiguracoesState extends State<Configuracoes> {
         FirebaseFirestore db = FirebaseFirestore.instance;
         DocumentSnapshot snapshot =
         await db.collection("usuarios").doc(_idUsuarioLogado).get();
-        Map<String, dynamic>? dados = snapshot.data() as Map<String, dynamic>?;
-        _controllerNome.text = dados?["nome"] ?? "";
-        _urlImagemRecuperada = dados?["urlImagem"] ?? "";
+        Map<String, dynamic>? dados =
+        snapshot.data() as Map<String, dynamic>?;
+
+        setState(() {
+          _controllerNome.text = dados?["nome"] ?? "";
+          _urlImagemRecuperada = dados?["urlImagem"] ?? "";
+        });
       }
     } catch (e) {
       _mostrarErro("Erro ao obter usuário logado: $e");
@@ -61,12 +65,11 @@ class _ConfiguracoesState extends State<Configuracoes> {
       _mostrarErro("Erro ao recuperar imagem: $e");
     }
     setState(() {
-      if( _imagem != null ){
+      if (_imagem != null) {
         _subindoImagem = true;
         _uploadImagem();
       }
     });
-
   }
 
   Future<void> _uploadImagem() async {
@@ -150,10 +153,9 @@ class _ConfiguracoesState extends State<Configuracoes> {
           .update(dadosAtualizar);
       _mostrarMensagem("Nome atualizado com sucesso!");
     } catch (e) {
-      _mostrarErro("Erro ao atualizar nome de usuário: $e "+_idUsuarioLogado);
+      _mostrarErro("Erro ao atualizar nome de usuário: $e " + _idUsuarioLogado);
     }
   }
-
 
   void _mostrarMensagem(String mensagem) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -162,6 +164,14 @@ class _ConfiguracoesState extends State<Configuracoes> {
       ),
     );
   }
+  ImageProvider<Object>? _getProfileImage() {
+    if (_urlImagemRecuperada is String && _urlImagemRecuperada.isNotEmpty) {
+      return NetworkImage(_urlImagemRecuperada);
+    } else {
+      return AssetImage('imagens/usuario.png');
+    }
+  }
+
 
   void _mostrarErro(String erro) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -187,8 +197,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
               children: [
                 Container(
                   padding: EdgeInsets.all(16),
-                  child:
-                  _subindoImagem
+                  child: _subindoImagem
                       ? CircularProgressIndicator()
                       : SizedBox(),
                 ),
@@ -197,21 +206,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
                   children: [
                     CircleAvatar(
                       radius: 130,
-                      backgroundColor: Colors.green[400],
-                      backgroundImage:
-                      _urlImagemRecuperada != null
-                          ? NetworkImage(_urlImagemRecuperada)
-                          : null,
-                      child: _imagem != null
-                          ? null
-                          : SizedBox(
-                        width: 160,
-                        height: 160,
-                        // child: Image(
-                        //   image: AssetImage('imagens/usuario.png'),
-                        //   fit: BoxFit.contain,
-                        // ),
-                      ),
+                      backgroundImage: _getProfileImage(),
                     ),
                   ],
                 ),
@@ -222,15 +217,13 @@ class _ConfiguracoesState extends State<Configuracoes> {
                       onPressed: () async {
                         await _recuperarImagem(ImageSource.camera);
                       },
-                      icon: Icon(Icons.camera_alt, size: 50),
-                      color: Colors.green,
+                      icon: Icon(Icons.camera_alt, size: 50, color: Colors.green),
                     ),
                     IconButton(
                       onPressed: () async {
                         await _recuperarImagem(ImageSource.gallery);
                       },
-                      icon: Icon(Icons.photo, size: 50),
-                      color: Colors.green,
+                      icon: Icon(Icons.photo, size: 50, color: Colors.green),
                     ),
                   ],
                 ),
@@ -238,9 +231,6 @@ class _ConfiguracoesState extends State<Configuracoes> {
                   controller: _controllerNome,
                   keyboardType: TextInputType.text,
                   style: const TextStyle(fontSize: 20),
-                  // onChanged: (texto){
-                  //   _atualizarNomeFirestore(texto);
-                  // },
                   decoration: InputDecoration(
                     labelText: "Nome",
                     filled: true,
@@ -253,7 +243,6 @@ class _ConfiguracoesState extends State<Configuracoes> {
                 Padding(padding: EdgeInsets.only(top: 10)),
                 ElevatedButton(
                   onPressed: () {
-
                     String novoNome = _controllerNome.text.trim();
                     if (novoNome.isNotEmpty) {
                       _atualizarNomeFirestore();
@@ -289,5 +278,4 @@ class _ConfiguracoesState extends State<Configuracoes> {
       ),
     );
   }
-
 }
